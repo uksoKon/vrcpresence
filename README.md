@@ -1,5 +1,10 @@
 # vrcpresence
 
+[![CI](https://github.com/uksoKon/vrcpresence/actions/workflows/ci.yml/badge.svg)](https://github.com/uksoKon/vrcpresence/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-only-FCC624?logo=linux&logoColor=black)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
 VRChat status, Discord Rich Presence and chatbox control for Linux.
 
 Shows the world you're in on your Discord profile - with the world's own
