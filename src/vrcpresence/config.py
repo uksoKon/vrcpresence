@@ -23,13 +23,19 @@ class Config:
     show_players: bool = True
     allow_join: bool = True
     private_mode: bool = False
+    hide_private_instances: bool = False
 
     chatbox_enabled: bool = False
-    chatbox_templates: list[str] = field(default_factory=lambda: ["{world} - {players}"])
+    chatbox_templates: list[str] = field(default_factory=lambda: ["{world} | {players} here"])
     chatbox_interval: int = 8
+    chatbox_media: bool = True
+    chatbox_typing: bool = False
 
     notifications_enabled: bool = True
     history_enabled: bool = True
+    # History lives only as long as the VRChat session: closing VRChat wipes
+    # it, so nothing accumulates on disk between sessions.
+    session_history_only: bool = True
     poll_interval: float = 2.0
 
     @classmethod

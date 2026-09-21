@@ -51,7 +51,7 @@ def test_history_totals(tmp_path):
     history.close()
 
 
-def _engine_for(tmp_path, log_body: str) -> Engine:
+def _engine_for(tmp_path, log_body: str, *, running: bool = True) -> Engine:
     log = tmp_path / "output_log_00.txt"
     log.write_text(log_body)
 
@@ -61,7 +61,11 @@ def _engine_for(tmp_path, log_body: str) -> Engine:
         notifications_enabled=False,
         history_enabled=False,
     )
-    return Engine(config, log_watcher=LogWatcher(log_dir=tmp_path))
+    return Engine(
+        config,
+        log_watcher=LogWatcher(log_dir=tmp_path),
+        is_running=lambda: running,
+    )
 
 
 def test_engine_tick_updates_state(tmp_path):
@@ -87,3 +91,28 @@ def test_engine_tick_with_no_log_is_harmless(tmp_path):
     engine = _engine_for(tmp_path, "")
     assert engine.tick() == []
     assert not engine.state.in_world
+
+
+def test_engine_reports_nothing_when_vrchat_is_closed(tmp_path):
+    """A finished session's log must not be presented as the current one."""
+    engine = _engine_for(tmp_path, (FIXTURES / "session.log").read_text(), running=False)
+    events = engine.tick()
+
+    assert events == []
+    assert not engine.state.in_world
+    assert engine.state.world_name is None
+    assert not engine.status.vrchat_running
+
+
+def test_engine_clears_world_when_vrchat_exits(tmp_path):
+    log_body = (FIXTURES / "session.log").read_text()
+    engine = _engine_for(tmp_path, log_body, running=True)
+    engine.tick()
+    assert engine.state.in_world
+
+    engine._is_running = lambda: False
+    engine.tick()
+
+    assert not engine.state.in_world
+    assert engine.state.players == []
+    assert engine.state.in_vr is None

@@ -67,6 +67,22 @@ class History:
         self._conn.executescript(SCHEMA)
         self._conn.commit()
         self._open_visit_id: int | None = None
+        self._close_orphans()
+
+    def _close_orphans(self) -> None:
+        """Close visits a previous run left open (crash, kill, stale session).
+
+        Without this they render as "now" forever and inflate nothing but
+        confusion. The real end time is unknowable, so the join time is used.
+        """
+        self._conn.execute("UPDATE visits SET left_at = joined_at WHERE left_at IS NULL")
+        self._conn.commit()
+
+    def clear(self) -> None:
+        self._open_visit_id = None
+        self._conn.execute("DELETE FROM encounters")
+        self._conn.execute("DELETE FROM visits")
+        self._conn.commit()
 
     def close(self) -> None:
         self._conn.close()

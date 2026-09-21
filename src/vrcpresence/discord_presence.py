@@ -7,7 +7,10 @@ from typing import Any
 
 from .state import SessionState
 
-DEFAULT_APP_ID = "1234567890123456789"
+# No default: Rich Presence requires an application ID from the Discord
+# developer portal, tied to the user's own account. A placeholder here would
+# only fail to connect and look like a bug.
+DEFAULT_APP_ID = ""
 
 VR_ICON = "vr"
 DESKTOP_ICON = "desktop"
@@ -87,9 +90,15 @@ class PresenceClient:
     def connected(self) -> bool:
         return self._rpc is not None
 
+    @property
+    def configured(self) -> bool:
+        return bool(self.app_id)
+
     def connect(self) -> bool:
         if self._rpc is not None:
             return True
+        if not self.app_id:
+            return False
 
         now = time.monotonic()
         if now - self._last_attempt < self.retry_seconds:

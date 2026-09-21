@@ -3,7 +3,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from .events import Event, HeadsetMode, LeftRoom, PlayerJoin, PlayerLeave, WorldJoin, WorldName
+from .events import (
+    Event,
+    HeadsetMode,
+    LeftRoom,
+    LocalUser,
+    PlayerJoin,
+    PlayerLeave,
+    WorldJoin,
+    WorldName,
+)
 
 
 @dataclass
@@ -18,6 +27,7 @@ class SessionState:
     in_vr: bool | None = None
     players: list[str] = field(default_factory=list)
     joined_at: datetime | None = None
+    local_user: str | None = None
 
     @property
     def in_world(self) -> bool:
@@ -65,6 +75,9 @@ class SessionState:
 
         elif isinstance(event, HeadsetMode):
             self.in_vr = event.in_vr
+
+        elif isinstance(event, LocalUser):
+            self.local_user = event.display_name
 
     def apply_all(self, events: list[Event]) -> None:
         for event in events:

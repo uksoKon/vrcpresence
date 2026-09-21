@@ -21,7 +21,16 @@ import re
 from collections.abc import Iterator
 from pathlib import Path
 
-from .events import Event, HeadsetMode, LeftRoom, PlayerJoin, PlayerLeave, WorldJoin, WorldName
+from .events import (
+    Event,
+    HeadsetMode,
+    LeftRoom,
+    LocalUser,
+    PlayerJoin,
+    PlayerLeave,
+    WorldJoin,
+    WorldName,
+)
 
 VRCHAT_STEAM_APPID = "438100"
 
@@ -31,6 +40,7 @@ PATTERNS = {
     "player_join": re.compile(r"\[Behaviour\] OnPlayerJoined\s+(.+?)(?:\s+\((usr_[0-9a-fA-F-]+)\))?\s*$"),
     "player_leave": re.compile(r"\[Behaviour\] OnPlayerLeft\s+(.+?)(?:\s+\((usr_[0-9a-fA-F-]+)\))?\s*$"),
     "left_room": re.compile(r"\[Behaviour\] OnLeftRoom"),
+    "local_user": re.compile(r"User Authenticated:\s+(.+?)(?:\s+\((usr_[0-9a-fA-F-]+)\))?\s*$"),
     # Desktop is detectable two ways, both verified against a real log: the
     # --no-vr launch flag, and VRChat's XR stack failing to come up (which is
     # what happens when no headset is connected).
@@ -69,6 +79,9 @@ def parse_line(line: str) -> Event | None:
 
     if PATTERNS["left_room"].search(line):
         return LeftRoom()
+
+    if match := PATTERNS["local_user"].search(line):
+        return LocalUser(display_name=match.group(1), user_id=match.group(2))
 
     if PATTERNS["desktop_mode"].search(line):
         return HeadsetMode(in_vr=False)

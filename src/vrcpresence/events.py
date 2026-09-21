@@ -33,10 +33,18 @@ class LeftRoom:
 
 
 @dataclass(frozen=True)
+class LocalUser:
+    """Who you are, so you aren't counted as someone you ran into."""
+
+    display_name: str
+    user_id: str | None = None
+
+
+@dataclass(frozen=True)
 class HeadsetMode:
     """Whether this VRChat session launched into VR or desktop mode."""
 
     in_vr: bool
 
 
-Event = WorldJoin | WorldName | PlayerJoin | PlayerLeave | LeftRoom | HeadsetMode
+Event = WorldJoin | WorldName | PlayerJoin | PlayerLeave | LeftRoom | HeadsetMode | LocalUser

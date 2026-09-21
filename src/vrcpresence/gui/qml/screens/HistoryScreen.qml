@@ -1,114 +1,195 @@
 import VrcPresence
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import ".."
 import "../components"
 
-Column {
+ColumnLayout {
     spacing: Theme.gap
 
-    Card {
-        width: parent.width
-        height: 78
-        padding: Theme.gap
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.fillHeight: false
+        Layout.preferredHeight: 60
+        Layout.maximumHeight: 60
+        spacing: Theme.gapTight
 
-        Row {
-            anchors.fill: parent
-            spacing: Theme.gapLoose
+        Repeater {
+            model: Bridge.historyTotals
 
-            Repeater {
-                model: Bridge.historyTotals
+            StatTile {
+                required property var modelData
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                label: modelData.label
+                value: modelData.value
+                valueColor: Theme.accent
+            }
+        }
+    }
 
-                Column {
-                    required property var modelData
-                    spacing: 4
+    RowLayout {
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        spacing: Theme.gapTight
 
-                    Text {
-                        text: modelData.value
-                        color: Theme.accent
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontTitle
+        Card {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 2
+            padding: Theme.gap
+
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: Theme.gapTight
+
+                Text {
+                    text: "Worlds visited"
+                    color: Theme.textFaint
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontMicro
+                }
+
+                ListView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+                    model: Bridge.visits
+                    spacing: 1
+                    ScrollBar.vertical: ScrollBar {}
+
+                    delegate: Rectangle {
+                        required property var modelData
+                        width: ListView.view.width
+                        height: 30
+                        radius: Theme.radiusSmall
+                        color: hover.hovered ? Theme.surfaceAlt : "transparent"
+
+                        HoverHandler { id: hover }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.gapTight
+                            anchors.rightMargin: Theme.gapTight
+                            spacing: Theme.gap
+
+                            Text {
+                                Layout.preferredWidth: 104
+                                text: modelData.when
+                                color: Theme.textFaint
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontMicro
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.name
+                                color: Theme.text
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSmall
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 44
+                                horizontalAlignment: Text.AlignRight
+                                text: modelData.duration
+                                color: Theme.textDim
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontMicro
+                            }
+
+                            Text {
+                                Layout.preferredWidth: 52
+                                horizontalAlignment: Text.AlignRight
+                                text: "peak " + modelData.peak
+                                color: Theme.textFaint
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontMicro
+                            }
+                        }
                     }
 
                     Text {
-                        text: modelData.label
-                        color: Theme.textDim
+                        anchors.centerIn: parent
+                        visible: parent.count === 0
+                        text: "No worlds recorded yet"
+                        color: Theme.textFaint
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSmall
                     }
                 }
             }
         }
-    }
 
-    Card {
-        width: parent.width
-        height: parent.height - 78 - Theme.gap
-        padding: Theme.gap
+        Card {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            padding: Theme.gap
 
-        ListView {
-            anchors.fill: parent
-            clip: true
-            model: Bridge.visits
-            spacing: 2
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: Theme.gapTight
 
-            delegate: Rectangle {
-                required property var modelData
-                width: ListView.view.width
-                height: 38
-                radius: Theme.radiusSmall
-                color: hover.hovered ? Theme.surfaceAlt : "transparent"
+                Text {
+                    text: "People you run into"
+                    color: Theme.textFaint
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontMicro
+                }
 
-                HoverHandler { id: hover }
+                ListView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+                    model: Bridge.peopleMet
+                    spacing: 1
+                    ScrollBar.vertical: ScrollBar {}
 
-                Row {
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.leftMargin: Theme.gapTight
-                    anchors.rightMargin: Theme.gapTight
-                    spacing: Theme.gap
+                    delegate: Rectangle {
+                        required property var modelData
+                        width: ListView.view.width
+                        height: 30
+                        radius: Theme.radiusSmall
+                        color: hover.hovered ? Theme.surfaceAlt : "transparent"
+
+                        HoverHandler { id: hover }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Theme.gapTight
+                            anchors.rightMargin: Theme.gapTight
+                            spacing: Theme.gapTight
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: modelData.name
+                                color: Theme.text
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSmall
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                text: modelData.shared
+                                color: Theme.accent
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontMicro
+                            }
+                        }
+                    }
 
                     Text {
-                        text: modelData.when
-                        color: Theme.textDim
+                        anchors.centerIn: parent
+                        visible: parent.count === 0
+                        text: "Nobody yet"
+                        color: Theme.textFaint
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSmall
-                        width: 110
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Text {
-                        text: modelData.name
-                        color: Theme.text
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontBody
-                        elide: Text.ElideRight
-                        width: parent.width - 110 - 130 - Theme.gap * 2
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Pill {
-                        text: modelData.duration
-                        tint: Theme.textDim
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    Pill {
-                        text: "peak " + modelData.peak
-                        tint: Theme.accentMuted
-                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
-            }
-
-            Text {
-                anchors.centerIn: parent
-                visible: parent.count === 0
-                text: "No worlds visited yet"
-                color: Theme.textDim
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontBody
             }
         }
     }
