@@ -1,0 +1,15 @@
+2026.09.21 18:02:11 Debug      -  Launching with args: 2
+2026.09.21 18:02:11 Debug      -  Arg: S:\steamapps\common\VRChat\VRChat.exe
+2026.09.21 18:02:12 Error      -  <b>[OpenVR]</b> Could not initialize OpenVR. Error code: Init_InterfaceNotFound
+2026.09.21 18:02:14 Log        -  [Behaviour] Initializing VRChat
+2026.09.21 18:02:31 Log        -  [Behaviour] Joining wrld_4432ea9b-729c-46e3-8eaf-846aa0a37fdd:47281~region(use)
+2026.09.21 18:02:31 Log        -  [Behaviour] Joining or Creating Room: The Black Cat
+2026.09.21 18:02:39 Log        -  [Behaviour] OnPlayerJoined ukso (usr_8a3d1c77-1111-4a4c-9d0e-0b9a77aa1234)
+2026.09.21 18:02:41 Log        -  [Behaviour] OnPlayerJoined Neon Fox
+2026.09.21 18:03:02 Log        -  [Behaviour] OnPlayerJoined Kettle
+2026.09.21 18:11:57 Log        -  [Behaviour] OnPlayerLeft Neon Fox
+2026.09.21 18:24:03 Log        -  [Behaviour] OnLeftRoom
+2026.09.21 18:24:19 Log        -  [Behaviour] Joining wrld_ba913a96-fac4-4048-a062-9aa5db092812:12345~public
+2026.09.21 18:24:19 Log        -  [Behaviour] Joining or Creating Room: The Great Pug
+2026.09.21 18:24:26 Log        -  [Behaviour] OnPlayerJoined ukso (usr_8a3d1c77-1111-4a4c-9d0e-0b9a77aa1234)
+2026.09.21 18:24:44 Log        -  [Behaviour] OnPlayerJoined Marzipan

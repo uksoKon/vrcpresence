@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vrcpresence"
+version = "0.1.0"
+description = "VRChat status, Discord Rich Presence and chatbox for Linux"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ukso" }]
+keywords = ["vrchat", "discord", "rich-presence", "osc", "linux", "proton"]
+
+dependencies = [
+    "PySide6>=6.6",
+    "pypresence>=4.3",
+    "python-osc>=1.8",
+]
+
+[project.optional-dependencies]
+api = ["vrchatapi>=1.18"]
+dev = ["pytest>=7", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/uksoKon/vrcpresence"
+
+[project.scripts]
+vrcpresence = "vrcpresence.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+vrcpresence = ["gui/qml/*.qml", "gui/qml/qmldir", "gui/qml/**/*.qml"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
