@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import asdict
 from datetime import datetime, timezone
 
 from PySide6.QtCore import Property, QFileSystemWatcher, QObject, QTimer, Signal, Slot
@@ -305,6 +306,36 @@ class Bridge(QObject):
         if not value:
             self._engine.presence.clear()
 
+    @Property("QVariantMap", notify=changed)
+    def options(self) -> dict:
+        """Whole config as a map, so QML reads settings without 40 properties."""
+        return asdict(self._engine.config)
+
+    @Slot(str, bool)
+    def setOption(self, key: str, value: bool) -> None:
+        self._set(key, value)
+
+    @Slot(str, str)
+    def setTextOption(self, key: str, value: str) -> None:
+        self._set(key, value.strip())
+
+    @Slot(str, str)
+    def setNumberOption(self, key: str, value: str) -> None:
+        text = value.strip()
+        if not text:
+            self._set(key, None)
+            return
+        try:
+            self._set(key, float(text))
+        except ValueError:
+            self.changed.emit()
+
+    @Property(str, notify=changed)
+    def composedLine(self) -> str:
+        """Last assembled line. Read the cache: composing touches subprocesses
+        and the network, which must never happen inside a QML binding."""
+        return self._engine.last_line
+
     @Property(bool, notify=changed)
     def hidePrivate(self) -> bool:
         return self._engine.config.hide_private_instances
@@ -324,6 +355,9 @@ class Bridge(QObject):
     @Property(str, notify=changed)
     def chatboxPreview(self) -> str:
         """Exactly what would be sent to the chatbox right now."""
+        if self._engine.config.chatbox_components:
+            return self._engine.last_line
+
         from ..osc_client import format_chatbox_text
 
         templates = self._engine.config.chatbox_templates

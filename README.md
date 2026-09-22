@@ -78,11 +78,41 @@ contains so the pattern can be corrected in one line.
   party size, VR or Desktop badge, elapsed time
 - **Join button** - friends click your presence and land in your instance
 - **Private mode** - one switch blanks your presence without closing the app
-- **Chatbox status** - rotating templates with `{world}`, `{players}`,
-  `{capacity}` and `{mode}` tokens
+- **Chatbox status** - either a single rotating template, or an assembled
+  line built from independent components (see below), each with its own
+  VR/Desktop switch
 - **Notifications** - desktop popup when someone joins or leaves
-- **History** - local SQLite record of worlds visited, time spent and who you
-  ran into, queryable from the History tab or `vrcpresence history`
+- **History** - local record of worlds visited, time spent and who you ran
+  into. Session-scoped by default: wiped when VRChat closes, nothing kept
+  between sessions, and you're never counted among people you ran into
+- **Desktop theming** - reads colours, font and corner radius from
+  `~/.config/serpantinum/settings.json` (or any tool that writes the same
+  format, including matugen) and re-themes live when it changes
+
+### Chatbox components
+
+Inspired by [MagicChatBox](https://github.com/BoiHanny/vrcosc-magicchatbox)'s
+approach of assembling one line from independent pieces, trimmed to VRChat's
+144-character limit by dropping the lowest-priority piece first rather than
+truncating mid-word:
+
+| Component | Source |
+| :-- | :-- |
+| World & players | VRChat's own log |
+| Now playing | MPRIS via `playerctl` - Spotify, browsers, VLC, anything |
+| Synced lyrics | [LRCLIB](https://lrclib.net), no account |
+| Time | System clock |
+| Weather | [Open-Meteo](https://open-meteo.com), no account, coordinates you enter yourself |
+| Component stats | CPU / GPU / RAM / temperature from `/proc` and `/sys` |
+| Network | Live down/up rate |
+| Window activity | Focused app, with a password-manager blocklist on by default and titles off by default |
+| Personal status | Your own text |
+
+Not included, with reasons: Soundpad and Voicemod are Windows-only apps;
+tracker battery and VR performance need the OpenVR/SteamVR overlay API, not
+available the same way under Proton; heart rate (Pulsoid), Spotify's API,
+Twitch and TikTok all need paid or OAuth-gated accounts; IntelliChat is
+AI-based and out of scope for this project on purpose.
 
 ## How it finds things
 

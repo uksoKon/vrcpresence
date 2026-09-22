@@ -12,7 +12,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 
-FORMAT = "{{status}}\x1f{{artist}}\x1f{{title}}\x1f{{playerName}}"
+FORMAT = "{{status}}\x1f{{artist}}\x1f{{title}}\x1f{{playerName}}\x1f{{position}}"
 PREFERRED = ("spotify", "vlc", "mpv", "audacious", "elisa", "strawberry", "youtube-music")
 
 
@@ -22,6 +22,7 @@ class NowPlaying:
     title: str = ""
     player: str = ""
     playing: bool = False
+    position: float = 0.0
 
     @property
     def is_empty(self) -> bool:
@@ -58,11 +59,19 @@ def _query(player: str | None = None) -> NowPlaying | None:
         return None
 
     status, artist, title, name = parts[0], parts[1], parts[2], parts[3]
+    # playerctl reports position in microseconds.
+    raw_position = parts[4].strip() if len(parts) > 4 else ""
+    try:
+        position = float(raw_position) / 1_000_000 if raw_position else 0.0
+    except ValueError:
+        position = 0.0
+
     return NowPlaying(
         artist=artist.strip(),
         title=title.strip(),
         player=name.strip(),
         playing=status.strip().lower() == "playing",
+        position=position,
     )
 
 

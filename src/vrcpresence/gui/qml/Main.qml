@@ -73,6 +73,7 @@ Window {
                         entries: [
                             { icon: "◉", label: "Status" },
                             { icon: "✉", label: "Chatbox" },
+                            { icon: "✦", label: "Integrations" },
                             { icon: "◴", label: "History" },
                             { icon: "⚙", label: "Settings" },
                             { icon: "ⓘ", label: "About" }
@@ -109,6 +110,7 @@ Window {
 
                 StatusScreen {}
                 ChatboxScreen {}
+                IntegrationsScreen {}
                 HistoryScreen {}
                 SettingsScreen {}
                 AboutScreen {}

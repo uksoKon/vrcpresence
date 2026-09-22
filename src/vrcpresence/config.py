@@ -30,6 +30,39 @@ class Config:
     chatbox_interval: int = 8
     chatbox_media: bool = True
     chatbox_typing: bool = False
+    # Assemble the line from components instead of a single template.
+    chatbox_components: bool = False
+
+    # Each component: enabled, plus where it shows. Separate VR/desktop
+    # switches mean rig stats at your desk and music in the headset.
+    show_world: bool = True
+    world_in_vr: bool = True
+    world_on_desktop: bool = True
+
+    show_time: bool = False
+    time_in_vr: bool = True
+    time_on_desktop: bool = True
+
+    show_weather: bool = False
+    weather_latitude: float | None = None
+    weather_longitude: float | None = None
+
+    show_system: bool = False
+    system_in_vr: bool = False
+    system_on_desktop: bool = True
+
+    show_network: bool = False
+    network_in_vr: bool = False
+    network_on_desktop: bool = True
+
+    show_window: bool = False
+    window_titles: bool = False
+    window_in_vr: bool = False
+    window_on_desktop: bool = True
+
+    show_lyrics: bool = False
+    show_status: bool = False
+    personal_status: str = ""
 
     notifications_enabled: bool = True
     history_enabled: bool = True

@@ -11,6 +11,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 
+from .builder import build_line
+from .components import ComponentSources, collect
 from .config import Config, config_dir, data_dir
 from .discord_presence import PresenceClient, build_presence
 from .events import Event, LeftRoom, PlayerJoin, PlayerLeave, WorldJoin, WorldName
@@ -63,6 +65,8 @@ class Engine:
         # thread every time the interface refreshes.
         self.track = NowPlaying()
         self._last_media_poll = 0.0
+        self.sources = ComponentSources.create(self.config)
+        self.last_line = ""
 
     def add_listener(self, listener: Listener) -> None:
         self._listeners.append(listener)
@@ -200,18 +204,38 @@ class Engine:
         self.status.discord_connected = self.presence.connected
 
     def _maybe_push_chatbox(self) -> None:
-        if not self.config.chatbox_enabled or not self.config.chatbox_templates:
+        if not self.config.chatbox_enabled:
+            return
+        if not self.config.chatbox_components and not self.config.chatbox_templates:
             return
         now = time.monotonic()
         if now - self._last_chatbox_push < self.config.chatbox_interval:
             return
         self._last_chatbox_push = now
 
-        template = self.config.chatbox_templates[
-            self._chatbox_rotation % len(self.config.chatbox_templates)
-        ]
+        self.chatbox.send(self.compose_line())
+
+    def compose_line(self) -> str:
+        """The exact text that goes to VRChat, however it is assembled."""
+        if self.config.chatbox_components:
+            components = collect(
+                self.config,
+                self.state,
+                self.sources,
+                running=self.status.vrchat_running,
+                track=self.track,
+            )
+            self.last_line = build_line(components, in_vr=self.state.in_vr).text
+            return self.last_line
+
+        templates = self.config.chatbox_templates
+        if not templates:
+            self.last_line = ""
+            return ""
+        template = templates[self._chatbox_rotation % len(templates)]
         self._chatbox_rotation += 1
-        self.chatbox.send(format_chatbox_text(template, self.chatbox_tokens()))
+        self.last_line = format_chatbox_text(template, self.chatbox_tokens())
+        return self.last_line
 
     def chatbox_tokens(self) -> dict[str, str]:
         mode = "" if self.state.in_vr is None else ("VR" if self.state.in_vr else "Desktop")
