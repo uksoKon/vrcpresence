@@ -178,6 +178,73 @@ Flickable {
             }
         }
 
+        // App options / Standalone -----------------------------------------------
+
+        Card {
+            Layout.fillWidth: true
+            Layout.preferredHeight: appCol.implicitHeight + Theme.gapLoose * 2
+            padding: Theme.gapLoose
+
+            ColumnLayout {
+                id: appCol
+                anchors.left: parent.left
+                anchors.right: parent.right
+                spacing: Theme.gap
+
+                Text {
+                    text: "APP OPTIONS"
+                    color: Theme.textDim
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSmall
+                }
+
+                SettingSwitch {
+                    Layout.fillWidth: true
+                    icon: "⏻"
+                    label: "Launch on login"
+                    hint: "Starts the background service (presence + chatbox), not the window"
+                    checked: Bridge.autostartEnabled
+                    onToggled: (v) => Bridge.setAutostart(v)
+                }
+
+                Text {
+                    text: "OSC destination (Standalone)"
+                    color: Theme.textFaint
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontMicro
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: "Default 127.0.0.1 talks to VRChat on this machine. Point it at a Quest's "
+                        + "IP on your network to run this on a separate PC and send to a standalone headset."
+                    color: Theme.textFaint
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontMicro
+                    wrapMode: Text.WordWrap
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Theme.gapTight
+
+                    TextInput {
+                        Layout.fillWidth: true
+                        label: "Host"
+                        value: Bridge.oscHost
+                        onCommitted: (v) => Bridge.setOscHost(v)
+                    }
+
+                    TextInput {
+                        Layout.preferredWidth: 100
+                        label: "Port"
+                        value: String(Bridge.oscPort)
+                        onCommitted: (v) => Bridge.setOscPort(v)
+                    }
+                }
+            }
+        }
+
         // Paths ----------------------------------------------------------------
 
         Card {

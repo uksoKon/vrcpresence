@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from PySide6.QtCore import Property, QFileSystemWatcher, QObject, QTimer, Signal, Slot
 
 from .. import __version__
+from ..config import config_dir
 from ..engine import Engine
 from ..theming import SETTINGS_PATH, load_desktop_theme
 
@@ -271,6 +272,51 @@ class Bridge(QObject):
         self._engine.reload_presence_client()
         self.changed.emit()
 
+    @Slot(str)
+    def setOscHost(self, value: str) -> None:
+        value = value.strip() or "127.0.0.1"
+        self._engine.config.osc_host = value
+        self._engine.config.save()
+        self._engine.reload_osc_client()
+        self.changed.emit()
+
+    @Slot(str)
+    def setOscPort(self, value: str) -> None:
+        try:
+            port = int(value.strip())
+        except ValueError:
+            self.changed.emit()
+            return
+        self._engine.config.osc_port = port
+        self._engine.config.save()
+        self._engine.reload_osc_client()
+        self.changed.emit()
+
+    @Property(bool, notify=changed)
+    def autostartEnabled(self) -> bool:
+        from ..autostart import is_enabled
+
+        return is_enabled()
+
+    @Property(str, notify=changed)
+    def oscHost(self) -> str:
+        return self._engine.config.osc_host
+
+    @Property(int, notify=changed)
+    def oscPort(self) -> int:
+        return self._engine.config.osc_port
+
+    @Slot(bool)
+    def setAutostart(self, value: bool) -> None:
+        from ..autostart import disable as autostart_disable
+        from ..autostart import enable as autostart_enable
+
+        if value:
+            autostart_enable()
+        else:
+            autostart_disable()
+        self._set("autostart_enabled", value)
+
     @Property(bool, notify=changed)
     def showPlayers(self) -> bool:
         return self._engine.config.show_players
@@ -335,6 +381,47 @@ class Bridge(QObject):
         """Last assembled line. Read the cache: composing touches subprocesses
         and the network, which must never happen inside a QML binding."""
         return self._engine.last_line
+
+    @Property(bool, notify=changed)
+    def spotifyAuthenticated(self) -> bool:
+        spotify = self._engine.sources.spotify
+        return bool(spotify and spotify.authenticated)
+
+    @Slot()
+    def spotifyLogin(self) -> None:
+        """Opens a browser and waits for the OAuth redirect - runs off the
+        GUI thread, since the wait can take up to two minutes."""
+        import threading
+
+        from ..spotify import SpotifyClient
+
+        if self._engine.sources.spotify is None:
+            path = config_dir() / "spotify.json"
+            self._engine.sources.spotify = SpotifyClient(self._engine.config.spotify_client_id, path)
+
+        def run() -> None:
+            self._engine.spotify_login()
+            self.changed.emit()
+
+        threading.Thread(target=run, daemon=True).start()
+
+    @Property(bool, constant=True)
+    def openvrAvailable(self) -> bool:
+        from ..openvr_source import available
+
+        return available()
+
+    @Property(bool, constant=True)
+    def ttsAvailable(self) -> bool:
+        from ..tts import available_engine
+
+        return available_engine() is not None
+
+    @Property(str, constant=True)
+    def ttsEngine(self) -> str:
+        from ..tts import available_engine
+
+        return available_engine() or "none found"
 
     @Property(bool, notify=changed)
     def hidePrivate(self) -> bool:

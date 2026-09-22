@@ -36,6 +36,16 @@ The `api` extra pulls in `vrchatapi`, used only to turn a world ID into a
 thumbnail image. Everything else - world name, players, VR/Desktop, chatbox,
 presence - works with no account and no credentials.
 
+For the optional social/hardware integrations below:
+
+```
+pip install -e ".[integrations]"   # everything, or pick one:
+pip install -e ".[heartrate]"      # Pulsoid heart rate
+pip install -e ".[tiktok]"         # TikTok Live
+pip install -e ".[discord-voice]"  # Discord voice channel presence
+pip install -e ".[vr]"             # OpenVR tracker battery / VR performance
+```
+
 ## Usage
 
 ```
@@ -94,25 +104,36 @@ contains so the pattern can be corrected in one line.
 Inspired by [MagicChatBox](https://github.com/BoiHanny/vrcosc-magicchatbox)'s
 approach of assembling one line from independent pieces, trimmed to VRChat's
 144-character limit by dropping the lowest-priority piece first rather than
-truncating mid-word:
+truncating mid-word. Every component has its own VR/Desktop visibility
+switch, so your rig stats can show at your desk and your music in the
+headset, automatically.
 
-| Component | Source |
-| :-- | :-- |
-| World & players | VRChat's own log |
-| Now playing | MPRIS via `playerctl` - Spotify, browsers, VLC, anything |
-| Synced lyrics | [LRCLIB](https://lrclib.net), no account |
-| Time | System clock |
-| Weather | [Open-Meteo](https://open-meteo.com), no account, coordinates you enter yourself |
-| Component stats | CPU / GPU / RAM / temperature from `/proc` and `/sys` |
-| Network | Live down/up rate |
-| Window activity | Focused app, with a password-manager blocklist on by default and titles off by default |
-| Personal status | Your own text |
+| Component | Source | Needs |
+| :-- | :-- | :-- |
+| World & players | VRChat's own log | nothing |
+| Now playing | MPRIS via `playerctl` - Spotify, browsers, VLC, anything | nothing |
+| Synced lyrics | [LRCLIB](https://lrclib.net) | nothing |
+| Time | System clock | nothing |
+| Weather | [Open-Meteo](https://open-meteo.com) | coordinates you enter |
+| Component stats | CPU / GPU / RAM / temperature from `/proc` and `/sys` | nothing |
+| Network | Live down/up rate | nothing |
+| Window activity | Focused app - password managers blocked by default, titles off by default | nothing |
+| Personal status | Your own text | nothing |
+| Tracker battery / VR performance | SteamVR via `pyopenvr` (runs natively on Linux) | `pip install .[vr]` |
+| Heart rate | [Pulsoid](https://pulsoid.net) WebSocket | your own access token |
+| Spotify | Liked/explicit/shuffle/repeat/device/volume, replaces generic Now Playing | free Spotify app (Client ID only, PKCE - no secret) |
+| Twitch | Live status, category, viewers, followers | free Twitch app (Client ID + Secret, read-only, no viewer login) |
+| TikTok Live | Viewer count, follows, gifts | your public username, `pip install .[tiktok]` |
+| Discord voice | Who's in your voice channel | a bot you create, `pip install .[discord-voice]` (not a self-bot) |
+| IntelliChat | AI spelling fix + smart shortening | **off by default** - your own OpenAI-compatible API key |
 
-Not included, with reasons: Soundpad and Voicemod are Windows-only apps;
-tracker battery and VR performance need the OpenVR/SteamVR overlay API, not
-available the same way under Proton; heart rate (Pulsoid), Spotify's API,
-Twitch and TikTok all need paid or OAuth-gated accounts; IntelliChat is
-AI-based and out of scope for this project on purpose.
+**Not included:** Soundpad and Voicemod are Windows-only apps with no Linux
+client at all - there's nothing here to connect to.
+
+IntelliChat is the one AI-based piece, included because it was explicitly
+asked for after being flagged as inconsistent with the rest of this project's
+no-AI stance - it's off by default, clearly labeled in the UI, and inert
+without an API key you provide yourself.
 
 ## How it finds things
 
@@ -123,7 +144,7 @@ AI-based and out of scope for this project on purpose.
 - Discord being closed is not an error - the presence client reconnects
   quietly when Discord shows up
 
-## Known gap
+## Known gaps
 
 Desktop detection is verified against a real log (the `--no-vr` launch flag
 and VRChat's XR stack failing to initialize). **VR detection is not yet
@@ -131,10 +152,18 @@ confirmed against a real VR session** - if you play in VR, run
 `vrcpresence calibrate` and check whether the reported mode says VR. If it
 says unknown, the command prints the lines needed to fix it.
 
+The tracker battery / VR performance integration was built and checked
+against the real `pyopenvr` package (correct imports, correct constant and
+method names) but not against an actual headset session, since none was
+available while building it - if it comes back empty while SteamVR is
+genuinely running, that's a bug, please report it. TikTok Live and Discord
+voice were checked the same way, against the real installed packages'
+actual event and field names rather than assumed ones.
+
 ## Development
 
 ```
-pip install -e ".[dev,api]"
+pip install -e ".[dev,api,integrations]"
 ruff check .
 pytest
 ```

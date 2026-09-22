@@ -17,9 +17,10 @@ from .config import Config, config_dir, data_dir
 from .discord_presence import PresenceClient, build_presence
 from .events import Event, LeftRoom, PlayerJoin, PlayerLeave, WorldJoin, WorldName
 from .history import History
+from .intellichat import IntelliChatConfig, IntelliChatService
 from .log_watcher import LogWatcher
 from .media import NowPlaying, now_playing
-from .osc_client import ChatboxClient, format_chatbox_text
+from .osc_client import MAX_CHATBOX_CHARS, ChatboxClient, format_chatbox_text
 from .process import vrchat_running
 from .state import SessionState
 from .vrchat_api import VRChatClient, WorldCache
@@ -50,7 +51,7 @@ class Engine:
 
         self.watcher = log_watcher or LogWatcher()
         self.presence = PresenceClient(self.config.discord_app_id)
-        self.chatbox = ChatboxClient()
+        self.chatbox = ChatboxClient(self.config.osc_host, self.config.osc_port)
         self.vrchat = VRChatClient(
             cookie_path=config_dir() / "session.cookies",
             cache=WorldCache(data_dir() / "worlds.json"),
@@ -67,6 +68,8 @@ class Engine:
         self._last_media_poll = 0.0
         self.sources = ComponentSources.create(self.config)
         self.last_line = ""
+        self.intellichat = IntelliChatService()
+        self._last_spoken = ""
 
     def add_listener(self, listener: Listener) -> None:
         self._listeners.append(listener)
@@ -135,6 +138,20 @@ class Engine:
         self.presence.close()
         self.presence = PresenceClient(self.config.discord_app_id)
         self.status.discord_connected = False
+
+    def reload_osc_client(self) -> None:
+        """Rebuild the chatbox sender after the OSC host/port changes.
+
+        This is the "Standalone" setup: point it at a Quest's IP on your
+        network instead of 127.0.0.1 to run this on a separate PC.
+        """
+        self.chatbox = ChatboxClient(self.config.osc_host, self.config.osc_port)
+
+    def spotify_login(self) -> bool:
+        """Opens a browser for the one-time Spotify sign-in. Blocks briefly."""
+        if not self.sources.spotify:
+            return False
+        return self.sources.spotify.login()
 
     def _on_event(self, event: Event) -> None:
         if isinstance(event, WorldJoin):
@@ -213,7 +230,14 @@ class Engine:
             return
         self._last_chatbox_push = now
 
-        self.chatbox.send(self.compose_line())
+        text = self.compose_line()
+        self.chatbox.send(text)
+
+        if self.config.tts_enabled and self.config.tts_speak_chatbox and text != self._last_spoken:
+            from . import tts
+
+            tts.speak(text, voice=self.config.tts_piper_voice or None)
+            self._last_spoken = text
 
     def compose_line(self) -> str:
         """The exact text that goes to VRChat, however it is assembled."""
@@ -225,17 +249,27 @@ class Engine:
                 running=self.status.vrchat_running,
                 track=self.track,
             )
-            self.last_line = build_line(components, in_vr=self.state.in_vr).text
-            return self.last_line
+            text = build_line(components, in_vr=self.state.in_vr).text
+        else:
+            templates = self.config.chatbox_templates
+            if not templates:
+                self.last_line = ""
+                return ""
+            template = templates[self._chatbox_rotation % len(templates)]
+            self._chatbox_rotation += 1
+            text = format_chatbox_text(template, self.chatbox_tokens())
 
-        templates = self.config.chatbox_templates
-        if not templates:
-            self.last_line = ""
-            return ""
-        template = templates[self._chatbox_rotation % len(templates)]
-        self._chatbox_rotation += 1
-        self.last_line = format_chatbox_text(template, self.chatbox_tokens())
-        return self.last_line
+        if self.config.intellichat_enabled:
+            ai_config = IntelliChatConfig(
+                enabled=self.config.intellichat_enabled,
+                api_key=self.config.intellichat_api_key,
+                api_base=self.config.intellichat_api_base,
+                model=self.config.intellichat_model,
+            )
+            text = self.intellichat.process(text, ai_config, limit=MAX_CHATBOX_CHARS)
+
+        self.last_line = text
+        return text
 
     def chatbox_tokens(self) -> dict[str, str]:
         mode = "" if self.state.in_vr is None else ("VR" if self.state.in_vr else "Desktop")
@@ -274,6 +308,7 @@ class Engine:
         if self.config.chatbox_enabled:
             self.chatbox.clear()
         self.presence.close()
+        self.sources.shutdown()
         if self.history:
             self.history.end_visit()
             self.history.close()

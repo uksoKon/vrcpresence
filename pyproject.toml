@@ -20,6 +20,13 @@ dependencies = [
 
 [project.optional-dependencies]
 api = ["vrchatapi>=1.18"]
+heartrate = ["websockets>=12"]
+tiktok = ["TikTokLive>=6"]
+discord-voice = ["discord.py>=2.4"]
+vr = ["openvr>=1.26"]
+integrations = [
+    "vrcpresence[api,heartrate,tiktok,discord-voice,vr]",
+]
 dev = ["pytest>=7", "ruff>=0.6"]
 
 [project.urls]

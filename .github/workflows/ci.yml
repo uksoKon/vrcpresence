@@ -22,6 +22,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libdbus-1-3
-      - run: pip install -e ".[dev]"
+      - run: pip install -e ".[dev,integrations]"
       - run: ruff check .
       - run: pytest -v

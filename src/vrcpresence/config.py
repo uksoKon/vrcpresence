@@ -64,6 +64,50 @@ class Config:
     show_status: bool = False
     personal_status: str = ""
 
+    # Hardware & VR
+    show_tracker_battery: bool = False
+    show_vr_performance: bool = False
+    vr_in_vr: bool = True
+    vr_on_desktop: bool = False
+
+    # Social & streaming
+    show_heart_rate: bool = False
+    pulsoid_token: str = ""
+    heart_rate_in_vr: bool = True
+    heart_rate_on_desktop: bool = False
+
+    show_spotify: bool = False
+    spotify_client_id: str = ""
+    spotify_template: str = "{title} - {artist}"
+
+    show_twitch: bool = False
+    twitch_client_id: str = ""
+    twitch_client_secret: str = ""
+    twitch_username: str = ""
+
+    show_tiktok: bool = False
+    tiktok_username: str = ""
+
+    show_discord_voice: bool = False
+    discord_bot_token: str = ""
+    discord_watch_user_id: str = ""
+
+    # TTS
+    tts_enabled: bool = False
+    tts_speak_chatbox: bool = False
+    tts_piper_voice: str = ""
+
+    # IntelliChat - AI-based, off by default, needs your own API key.
+    intellichat_enabled: bool = False
+    intellichat_api_key: str = ""
+    intellichat_api_base: str = "https://api.openai.com/v1"
+    intellichat_model: str = "gpt-4o-mini"
+
+    # App options / standalone
+    osc_host: str = "127.0.0.1"
+    osc_port: int = 9000
+    autostart_enabled: bool = False
+
     notifications_enabled: bool = True
     history_enabled: bool = True
     # History lives only as long as the VRChat session: closing VRChat wipes
